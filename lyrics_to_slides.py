@@ -16,22 +16,41 @@ def setup_google_services():
     if not credentials_json:
         raise ValueError("Google 인증 정보가 없습니다!")
     
+    print("🔑 인증 정보 길이:", len(credentials_json), "characters")
+    
     # JSON 문자열을 딕셔너리로 변환
-    credentials_info = json.loads(credentials_json)
+    try:
+        credentials_info = json.loads(credentials_json)
+        print("✅ JSON 파싱 성공")
+        print("📋 프로젝트 ID:", credentials_info.get('project_id', 'Unknown'))
+        print("📧 클라이언트 이메일:", credentials_info.get('client_email', 'Unknown'))
+    except json.JSONDecodeError as e:
+        print(f"❌ JSON 파싱 실패: {e}")
+        raise
     
     # Google API 인증 (더 광범위한 권한으로)
-    credentials = Credentials.from_service_account_info(
-        credentials_info,
-        scopes=[
-            'https://www.googleapis.com/auth/presentations',
-            'https://www.googleapis.com/auth/drive',
-            'https://www.googleapis.com/auth/drive.file'
-        ]
-    )
+    try:
+        credentials = Credentials.from_service_account_info(
+            credentials_info,
+            scopes=[
+                'https://www.googleapis.com/auth/presentations',
+                'https://www.googleapis.com/auth/drive',
+                'https://www.googleapis.com/auth/drive.file'
+            ]
+        )
+        print("✅ 인증 객체 생성 성공")
+    except Exception as e:
+        print(f"❌ 인증 객체 생성 실패: {e}")
+        raise
     
     # Slides와 Drive 서비스 생성
-    slides_service = build('slides', 'v1', credentials=credentials)
-    drive_service = build('drive', 'v3', credentials=credentials)
+    try:
+        slides_service = build('slides', 'v1', credentials=credentials)
+        drive_service = build('drive', 'v3', credentials=credentials)
+        print("✅ Google 서비스 연결 성공")
+    except Exception as e:
+        print(f"❌ Google 서비스 연결 실패: {e}")
+        raise
     
     return slides_service, drive_service
 
