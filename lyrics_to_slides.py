@@ -77,16 +77,35 @@ def split_lyrics_into_pairs(lyrics_text):
 def create_slides_presentation(slides_service, drive_service, title, lyrics_pairs):
     """Google Slides 프레젠테이션 생성"""
     
-    # 1. 새 프레젠테이션 생성
-    presentation = {
-        'title': title
-    }
+    # 먼저 Google Drive 연결 테스트
+    try:
+        print("🔧 Google Drive 연결 테스트 중...")
+        drive_files = drive_service.files().list(pageSize=1).execute()
+        print("✅ Google Drive 연결 성공!")
+    except Exception as e:
+        print(f"❌ Google Drive 연결 실패: {e}")
+        raise
     
-    presentation = slides_service.presentations().create(body=presentation).execute()
-    presentation_id = presentation['presentationId']
-    
-    print(f"✅ 프레젠테이션 생성 완료: {title}")
-    print(f"📝 ID: {presentation_id}")
+    # 1. 새 프레젠테이션 생성 (더 안전한 방법)
+    print("🎨 Google Slides 생성 시도...")
+    try:
+        presentation = {
+            'title': title
+        }
+        
+        presentation = slides_service.presentations().create(body=presentation).execute()
+        presentation_id = presentation['presentationId']
+        
+        print(f"✅ 프레젠테이션 생성 완료: {title}")
+        print(f"📝 ID: {presentation_id}")
+        
+    except Exception as e:
+        print(f"❌ 프레젠테이션 생성 실패: {e}")
+        # 더 자세한 오류 정보 출력
+        if hasattr(e, 'resp'):
+            print(f"📋 응답 상태: {e.resp.status}")
+            print(f"📋 응답 이유: {e.resp.reason}")
+        raise
     
     # 2. 기본 슬라이드 삭제 (제목 슬라이드)
     requests = [
