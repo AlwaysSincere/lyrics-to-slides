@@ -30,7 +30,7 @@ jobs:
     
     # 2. Python 환경 설정
     - name: 🐍 Python 설정
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.9'
     
@@ -71,7 +71,7 @@ jobs:
     
     # 7. 결과 파일 업로드 (나중에 다운로드 가능)
     - name: 📤 결과 업로드
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: slides-result
