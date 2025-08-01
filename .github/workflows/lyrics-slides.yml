@@ -1,0 +1,93 @@
+name: 가사를 Google Slides로 변환
+
+on:
+  # 수동으로 실행할 수 있도록 설정
+  workflow_dispatch:
+    inputs:
+      lyrics_content:
+        description: '가사 내용 (여기에 가사를 입력하세요)'
+        required: true
+        type: string
+        default: |
+          아이시떼 아이시떼 아이시떼
+          못토 못토
+          아이시떼 아이시떼
+          쿠루오시이호도니
+
+  # lyrics.txt 파일이 변경될 때도 자동 실행
+  push:
+    paths:
+      - 'lyrics.txt'
+
+jobs:
+  create-slides:
+    runs-on: ubuntu-latest
+    
+    steps:
+    # 1. 코드 다운로드
+    - name: 📥 코드 체크아웃
+      uses: actions/checkout@v4
+    
+    # 2. Python 환경 설정
+    - name: 🐍 Python 설정
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    # 3. 필요한 라이브러리 설치
+    - name: 📦 라이브러리 설치
+      run: |
+        pip install --upgrade pip
+        pip install google-auth google-auth-oauthlib google-auth-httplib2
+        pip install google-api-python-client
+    
+    # 4. 가사 파일 생성 (수동 입력된 경우)
+    - name: 📝 가사 파일 생성
+      if: github.event.inputs.lyrics_content != ''
+      run: |
+        echo "${{ github.event.inputs.lyrics_content }}" > lyrics.txt
+        echo "📄 가사 파일 내용:"
+        cat lyrics.txt
+    
+    # 5. 가사 파일 확인
+    - name: 🔍 가사 파일 확인
+      run: |
+        if [ -f "lyrics.txt" ]; then
+          echo "✅ lyrics.txt 파일이 존재합니다."
+          echo "📊 파일 크기: $(wc -c < lyrics.txt) bytes"
+          echo "📏 줄 수: $(wc -l < lyrics.txt) lines"
+        else
+          echo "❌ lyrics.txt 파일이 없습니다!"
+          exit 1
+        fi
+    
+    # 6. Google Slides 생성 실행
+    - name: 🎨 Google Slides 생성
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+      run: |
+        echo "🚀 가사를 Google Slides로 변환 시작..."
+        python lyrics_to_slides.py
+    
+    # 7. 결과 파일 업로드 (나중에 다운로드 가능)
+    - name: 📤 결과 업로드
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: slides-result
+        path: |
+          result.txt
+          lyrics.txt
+    
+    # 8. 결과 출력
+    - name: 📋 결과 표시
+      if: always()
+      run: |
+        echo "===================="
+        echo "🎯 작업 완료 결과"
+        echo "===================="
+        if [ -f "result.txt" ]; then
+          cat result.txt
+        else
+          echo "❌ 결과 파일을 찾을 수 없습니다."
+        fi
