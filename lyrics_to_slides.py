@@ -271,6 +271,39 @@ def main():
         
         # 5. Google Slides 생성
         print("🎨 Google Slides 생성 중...")
+        
+        # 먼저 Google Drive 테스트
+        try:
+            print("🔧 Google Drive 연결 테스트...")
+            drive_files = drive_service.files().list(pageSize=1).execute()
+            print("✅ Google Drive API 작동 확인!")
+        except Exception as e:
+            print(f"❌ Google Drive API 실패: {e}")
+            return
+        
+        # 간단한 텍스트 파일 생성 테스트
+        try:
+            print("📄 간단한 파일 생성 테스트...")
+            file_metadata = {
+                'name': 'lyrics-test.txt',
+                'parents': []  # 루트 폴더에 생성
+            }
+            
+            # 빈 파일 생성
+            test_file = drive_service.files().create(
+                body=file_metadata
+            ).execute()
+            
+            print(f"✅ 테스트 파일 생성 성공! ID: {test_file['id']}")
+            
+            # 테스트 파일 삭제
+            drive_service.files().delete(fileId=test_file['id']).execute()
+            print("🗑️ 테스트 파일 삭제 완료")
+            
+        except Exception as e:
+            print(f"❌ 파일 생성 테스트 실패: {e}")
+            return
+        
         presentation_id, slides_url = create_slides_presentation(
             slides_service, drive_service, title, lyrics_pairs
         )
