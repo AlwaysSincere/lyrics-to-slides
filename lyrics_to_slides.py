@@ -19,11 +19,14 @@ def setup_google_services():
     # JSON 문자열을 딕셔너리로 변환
     credentials_info = json.loads(credentials_json)
     
-    # Google API 인증
+    # Google API 인증 (더 광범위한 권한으로)
     credentials = Credentials.from_service_account_info(
         credentials_info,
-        scopes=['https://www.googleapis.com/auth/presentations',
-                'https://www.googleapis.com/auth/drive']
+        scopes=[
+            'https://www.googleapis.com/auth/presentations',
+            'https://www.googleapis.com/auth/drive',
+            'https://www.googleapis.com/auth/drive.file'
+        ]
     )
     
     # Slides와 Drive 서비스 생성
